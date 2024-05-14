@@ -11,14 +11,13 @@ using grig.audio.AudioBufferTools;
 using grig.audio.AudioChannelTools;
 
 @:asserts
-class AudioChannelTest {
+class AudioChannelTest
+{
 
-    public function new()
-    {
+    public function new() {
     }
 
-    public function testAdd()
-    {
+    public function testAdd() {
         var length = 100;
         var channel1 = new AudioChannel(length);
         var channel2 = new AudioChannel(length);
@@ -31,8 +30,7 @@ class AudioChannelTest {
         return assert(channel2.isSilent() && !channel1.isSilent());
     }
 
-    public function testResample()
-    {
+    public function testResample() {
         var length = 10;
         var buffer = new AudioBuffer<Float32>(1, length, 44100.0);
         for (i in 0...buffer.numSamples) {
@@ -45,8 +43,7 @@ class AudioChannelTest {
     }
 
     #if (!js && !python)
-    public function testInterleaved()
-    {
+    public function testInterleaved() {
         var buffer = new InterleavedAudioBuffer<Float64>(2, 10, 48000.0);
         for (i in 0...buffer.numSamples) {
             buffer[0][i] = 0;
