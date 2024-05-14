@@ -25,9 +25,9 @@ class FFT
 {
     private static final TWO_PI:Float = 6.2831853;
 
-    private var hamming = new Array<Float>();
-    private var reversed = new Array<Int>();
-    private var roots = new Array<Complex>();
+    private var hamming = new Array<Float>();   // hamming window, scaled to sum to 1
+    private var reversed = new Array<Int>();    // bit-reversal table
+    private var roots = new Array<Complex>();   // N-th roots of unity
     private var n:Int;
     private var logN:Int;
 
@@ -45,6 +45,7 @@ class FFT
         return Math.log(x) / Math.log(base);
     }
 
+    // Reverse the order of the lowest LOGN bits in an integer.
     private function bitReverse(x:Int):Int {
         var y:Int = 0;
 
@@ -58,19 +59,73 @@ class FFT
         return y;
     }
 
+    // Generate lookup tables.
     private function generateTables() {
-        // for (int n = 0; n < N; n++)
-        //     hamming[n] = 1 - 0.85f * cosf(n * (TWO_PI / N));
-        // for (int n = 0; n < N; n++)
-        //     reversed[n] = bit_reverse(n);
-        // for (int n = 0; n < N / 2; n++)
-        //     roots[n] = exp(Complex(0, n * (TWO_PI / N)));
-
         for (i in 0...n)
             hamming[i] = 1 - 0.85 * Math.cos(i * (TWO_PI / n));
         for (i in 0...reversed.length)
             reversed[i] = bitReverse(i);
         for (i in 0...Std.int(n / 2))
             roots[i] = Complex.exp(new Complex(0, i * (TWO_PI / n)));
+    }
+
+    /* 
+     * Perform the DFT using the Cooley-Tukey algorithm.  At each step s, where
+     * s=1..log N (base 2), there are N/(2^s) groups of intertwined butterfly
+     * operations.  Each group contains (2^s)/2 butterflies, and each butterfly has
+     * a span of (2^s)/2.  The twiddle factors are nth roots of unity where n = 2^s.
+     */
+    private function doFFT(a:Array<Complex>) {
+        var half:Int = 1;                   // (2^s)/2
+        var inv = Std.int(a.length / 2);    // N/(2^s)
+
+        // loop through steps
+        while (inv > 0) {
+            // loop through groups
+            var g:Int = 0;
+            while (g < a.length) {
+                // loop through butterflies
+                var b:Int = 0;
+                var r:Int = 0;
+                while (b < half) {
+                    var even = a[g + b];
+                    var odd = roots[r] * a[g + half + b];
+                    a[g + b] = even + odd;
+                    a[g + half + b] = even - odd;
+                    b++;
+                    r += inv;
+                }
+                g += half << 1;
+            }
+
+            half <<= 1;
+            inv >>= 1;
+        }
+    }
+
+    // Input is N=512 PCM samples.
+    // Output is intensity of frequencies from 1 to N/2=256.
+    public function calcFreq(data:Array<Float>):Array<Float> {
+        // input is filtered by a Hamming window
+        // input values are in bit-reversed order
+        var a = new Array<Complex>();
+        var freq = new Array<Float>();
+        a.resize(n);
+        freq.resize(Std.int(n / 2));
+        for (i in 0...a.length)
+            a[reversed[i]] = { real: data[i] * hamming[i], imag: 0.0 };
+
+        doFFT(a);
+        // trace('${a[30]} ${a[100]}');
+
+        // output values are divided by N
+        // frequencies from 1 to N/2-1 are doubled
+        for (i in 0...Std.int(n/2))
+            freq[i] = 2 * Complex.abs(a[1 + i]) / n;
+
+        // frequency N/2 is not doubled
+        freq[Std.int(n / 2) - 1] = Complex.abs(a[Std.int(n / 2)]) / n;
+
+        return freq;
     }
 }
