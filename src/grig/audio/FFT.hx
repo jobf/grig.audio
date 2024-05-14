@@ -41,6 +41,7 @@ class FFT
         generateTables();
     }
 
+    // This should be moved to a utility class somewhere
     public static function log(base:Float, x:Float):Float {
         return Math.log(x) / Math.log(base);
     }

@@ -11,6 +11,7 @@ class RunTests {
             new AudioChannelTest(),
             new ComplexTest(),
             new FFTTest(),
+            new FFTVisualizationTest(),
         ])).handle(Runner.exit);
     }
 
