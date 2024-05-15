@@ -37,6 +37,11 @@ class FFTVisualizationTest
         asserts.assert(Math.abs(freqBandA - -31.6492) < delta);
         asserts.assert(Math.abs(freqBandB - -54.6572) < delta);
 
+        var vis = new FFTVisualization();
+        var bars = vis.makeLogGraph(freqs, 10, 40, 8);
+        asserts.assert(bars[1] == 4);
+        asserts.assert(bars[3] == 1);
+
         return asserts.done();
     }
 }

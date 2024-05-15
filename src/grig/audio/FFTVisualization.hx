@@ -21,9 +21,12 @@ package grig.audio;
 
 class FFTVisualization
 {
+    private var xscale = new Array<Float>();
+
     private static function computeLogXScale(bands:Int):Array<Float> {
         var xscale = new Array<Float>();
-        xscale.resize(bands);
+        xscale.resize(bands + 1);
+        xscale[bands] = 0.0;
         for (i in 0...bands)
             xscale[i] = Math.pow(256, i / bands) - 0.5;
         return xscale;
@@ -51,35 +54,37 @@ class FFTVisualization
         // 12-band one no matter how many bands there are
         n *= bands / 12;
 
+        #if python
+        if (n < 0)
+            return Math.NaN;
+        #end
+
         return 20 * FFT.log(10, n);
     }
 
-    // template <typename T, typename T2>
-    // static inline T clamp(T2 value, T lower, T upper)
-    // {
-    // return value < lower ? lower : (value > upper ? upper : value);
-    // }
+    public function new() {}
 
-    // void make_log_graph (const float * freq, int bands, int db_range,
-    // int int_range, unsigned char * graph)
-    // {
-    //     static int last_bands = 0;
-    //     static vector<float> xscale;
+    public function makeLogGraph(freq:Array<Float>, bands:Int, dbRange:Int, intRange:Int):Array<Int> {
+        // conversion table for the x-axis
+        if (xscale.length != bands + 1) {
+            xscale = computeLogXScale(bands);
+        }
 
-    //     /* conversion table for the x-axis */
-    //     if (bands != last_bands)
-    //     {
-    //         xscale.resize (bands + 1);
-    //         compute_log_xscale (& xscale[0], bands);
-    //         last_bands = bands;
-    //     }
+        var graph = new Array<Int>();
+        graph.resize(bands);
+        for (i in 0...bands) {
+            var val:Float = computeFreqBand(freq, xscale, i, bands);
+            #if python
+            if (Math.isNaN(val)) {
+                graph[i] = 0;
+                continue;
+            }
+            #end
+            // scale (-db_range, 0.0) to (0.0, int_range)
+            val = (1 + val / dbRange) * intRange;
+            graph[i] = FFT.clamp(Std.int(val), 0, intRange);
+        }
 
-    //     for (int i = 0; i < bands; i ++)
-    //     {
-    //         float val = compute_freq_band (freq, & xscale[0], i, bands);
-    //         /* scale (-db_range, 0.0) to (0.0, int_range) */
-    //         val = (1 + val / db_range) * int_range;
-    //         graph[i] = clamp ((int) val, 0, int_range);
-    //     }
-    // }
+        return graph;
+    }
 }

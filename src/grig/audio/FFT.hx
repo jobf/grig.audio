@@ -46,6 +46,11 @@ class FFT
         return Math.log(x) / Math.log(base);
     }
 
+    @:generic
+    public static function clamp<T:Float>(value:T, lower:T, upper:T):T {
+        return value < lower ? lower : (value > upper ? upper : value);
+    }
+
     // Reverse the order of the lowest LOGN bits in an integer.
     private function bitReverse(x:Int):Int {
         var y:Int = 0;
