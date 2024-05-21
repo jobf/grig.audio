@@ -17,7 +17,7 @@ class LimeUtilsTest
         var audioBuffer = lime.media.AudioBuffer.fromBytes(bytes);
         var audioSamples = LimeUtils.limeAudioBufferToInterleaved(audioBuffer);
         asserts.assert(audioSamples.length == 191688);
-        asserts.assert(Math.abs(audioSamples[4000] - -0.07196044921875) < delta);
+        asserts.assert(Math.abs(audioSamples[4000] - -0.0719626453444014) < delta);
 
         return asserts.done();
     }
