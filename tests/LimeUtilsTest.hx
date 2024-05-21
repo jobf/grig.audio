@@ -1,6 +1,6 @@
 package;
 
-import grig.audio.LimeUtils;
+using grig.audio.lime.AudioBufferTools;
 import tink.unit.Assert.*;
 
 @:asserts
@@ -15,7 +15,7 @@ class LimeUtilsTest
     public function testConvert() {
         var bytes = haxe.Resource.getBytes("tests/tri.ogg");
         var audioBuffer = lime.media.AudioBuffer.fromBytes(bytes);
-        var audioSamples = LimeUtils.limeAudioBufferToInterleaved(audioBuffer);
+        var audioSamples = audioBuffer.toInterleaved();
         asserts.assert(audioSamples.length == 191688);
         asserts.assert(Math.abs(audioSamples[4000] - -0.0719626453444014) < delta);
 
