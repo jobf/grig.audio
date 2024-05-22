@@ -4,7 +4,7 @@ package grig.audio.lime;
 
 class UInt8ArrayTools
 {
-	 public static inline function getInt16(data:lime.utils.UInt8Array, pos:Int):Int {
+	public static inline function getInt16(data:lime.utils.UInt8Array, pos:Int):Int {
         var val = data[pos] | (data[pos+1] << 8);
         if (val & 0x8000 != 0)
             return val - 0x10000;
