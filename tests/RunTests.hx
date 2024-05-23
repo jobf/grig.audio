@@ -9,6 +9,9 @@ class RunTests {
     {
         Runner.run(TestBatch.make([
             new AudioChannelTest(),
+            new ComplexTest(),
+            new FFTTest(),
+            new FFTVisualizationTest(),
         ])).handle(Runner.exit);
     }
 
