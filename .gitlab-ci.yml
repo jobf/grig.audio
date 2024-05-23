@@ -1,4 +1,4 @@
-image: osakared/haxe-ci:2.0
+image: osakared/haxe-ci:2.1
 
 test:
   script:
