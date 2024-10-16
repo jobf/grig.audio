@@ -61,14 +61,6 @@ class Main
 
     static function main()
     {
-        // var timer = new Timer(250);
-        // timer.run = () -> {
-        //     if(is_ready){
-        //         timer.stop();
-        //     }
-        // }
-        #if web
-        #end
         // trace(AudioInterface.getApis());
         var audioInterface = new AudioInterface();
         // audioInterface.cancelCallback
