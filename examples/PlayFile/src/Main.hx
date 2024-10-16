@@ -9,19 +9,34 @@ import haxe.Timer;
 import tink.core.Future;
 
 using grig.audio.AudioBufferTools;
+using grig.audio.AudioChannelTools;
 
 class Main
 {
     private static var location:Int = 0;
     private static var buffer:AudioBuffer<Float32>;
+    private static var sine_buffer:AudioBuffer<Float32>;
 
     private static function audioCallback(input:AudioBuffer<Float32>, output:AudioBuffer<Float32>, sampleRate:Float, audioStreamInfo:grig.audio.AudioStreamInfo)
     {
+        // trace('go');
         output.clear();
         if (buffer == null) return;
         if (location >= buffer.numSamples) return;
         var length = Ints.min(buffer.numSamples - location, output.numSamples);
-        output.copyFrom(buffer, length, location, 0);
+        output[0].copyFrom(buffer[0], length, location, 0);
+        location += length;
+    }
+
+
+    private static function audioCallbackSine(input:AudioBuffer<Float32>, output:AudioBuffer<Float32>, sampleRate:Float, audioStreamInfo:grig.audio.AudioStreamInfo)
+    {
+        // trace('go');
+        output.clear();
+        if (buffer == null) return;
+        if (location >= buffer.numSamples) return;
+        var length = output.numSamples;//Ints.min(buffer.numSamples - location, output.numSamples);
+        output[0].copyFrom(sine_buffer[0], length, 0, 0);
         location += length;
     }
 
@@ -42,10 +57,21 @@ class Main
         #end
     }
 
+    static var is_ready:Bool = false;
+
     static function main()
     {
-        trace(AudioInterface.getApis());
+        // var timer = new Timer(250);
+        // timer.run = () -> {
+        //     if(is_ready){
+        //         timer.stop();
+        //     }
+        // }
+        #if web
+        #end
+        // trace(AudioInterface.getApis());
         var audioInterface = new AudioInterface();
+        // audioInterface.cancelCallback
         var ports = audioInterface.getPorts();
         var options:grig.audio.AudioInterfaceOptions = {};
         for (port in ports) {
@@ -54,9 +80,11 @@ class Main
                 options.outputPort = port.portID;
                 options.sampleRate = port.defaultSampleRate; // if input and output are different samplerates (would that happen?) then this code will fail
                 options.outputLatency = port.defaultLowOutputLatency;
+                trace(options);
+                break;
             }
         }
-        audioInterface.setCallback(audioCallback);
+        audioInterface.setCallback(audioCallbackSine);
         
         var musicBytes = haxe.Resource.getBytes('DeepElmBlues.wav');
         var musicInput = new haxe.io.BytesInput(musicBytes);
@@ -65,6 +93,8 @@ class Main
             switch bufferOutcome {
                 case Success(_buffer):
                     buffer = _buffer;
+                    sine_buffer = new AudioBuffer(1, 256, options.sampleRate);
+                    sine_buffer[0].fill(0);
                     if (buffer.sampleRate != options.sampleRate) {
                         buffer = buffer.resample(options.sampleRate / buffer.sampleRate);
                     }
