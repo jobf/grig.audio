@@ -76,7 +76,7 @@ class Main
                 break;
             }
         }
-        audioInterface.setCallback(audioCallbackSine);
+        audioInterface.setCallback(audioCallback);
         
         var musicBytes = haxe.Resource.getBytes('DeepElmBlues.wav');
         var musicInput = new haxe.io.BytesInput(musicBytes);
